@@ -1,0 +1,25 @@
+START -> PROG
+PROG -> BLOCK #
+BLOCK -> begin BODY end
+BODY -> S BODY'
+BODY' -> ; S BODY'
+BODY' -> _LAMBDA_
+S -> BLOCK
+S -> IFST
+S -> ASSI
+IFST -> if E then S IF'
+IF' -> else S fi
+IF' -> fi
+ASSI -> V = E
+V -> id
+E -> T E'
+E' -> + T E'
+E' -> - T E'
+E' -> _LAMBDA_
+T -> F T'
+T' -> * F T'
+T' -> / F T'
+T' -> _LAMBDA_
+F -> V
+F -> ( E )
+F -> const
