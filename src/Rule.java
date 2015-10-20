@@ -16,6 +16,9 @@ public class Rule {
 
     public Rule(String parsedLine){
 
+       // System.out.println(parsedLine);
+        ruleName = parsedLine.substring(0,parsedLine.indexOf("-")-1);
+
     }
 
     public String getRuleName() {
@@ -32,5 +35,17 @@ public class Rule {
 
     public Set<String> getFollowSet() {
         return followSet;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        return ruleName;
+
+
+
+
+        //return builder.toString();
     }
 }

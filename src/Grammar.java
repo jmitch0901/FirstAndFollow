@@ -1,5 +1,3 @@
-import com.sun.istack.internal.Nullable;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Singleton Class
  * Created by jmitch on 10/20/2015.
  */
 public class Grammar {
@@ -20,14 +19,13 @@ public class Grammar {
 
         grammar = new HashMap<>();
 
-
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-
-
-
+        InputStream is = new FileInputStream(fileName);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
         String line = null;
-        while((line= reader.readLine()) !=null){
+        while((line= reader.readLine()) != null){
+
+            //System.out.println(line);
 
             Rule rule = new Rule(line);
             if(grammar.get(rule.getRuleName())==null){
@@ -55,11 +53,29 @@ public class Grammar {
         }
     }
 
-    @Nullable
     public static Grammar getInstance() {
         if(instance==null){
             System.out.println("ERROR, you need to instantiate the grammar from a fileName before getting the instance.");
         }
         return instance;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
+            String key = entry.getKey();
+            List<Rule> rules = entry.getValue();
+
+            for(int i = 0; i < rules.size(); i++){
+
+                builder.append(rules.get(i).toString());
+                builder.append("\n");
+
+            }
+
+        }
+
+        return builder.toString();
     }
 }
