@@ -1,51 +1,141 @@
-import java.util.LinkedList;
-import java.util.Set;
+
+
+import java.util.*;
 
 /**
  * Created by jmitch on 10/20/2015.
  */
 public class Rule {
 
-    private String ruleName;
-    private LinkedList<String> ruleParams;
+
+
+    private Symbol ruleName;
+    private List<Symbol> ruleResult;
 
 
 
-    private Set<String> firstSet;
-    private Set<String> followSet;
+    //private Set<String> firstSet;
+    //private Set<String> followSet;
 
     public Rule(String parsedLine){
 
-       // System.out.println(parsedLine);
-        ruleName = parsedLine.substring(0,parsedLine.indexOf("-")-1);
+        ruleResult = new LinkedList<>();
 
+        StringTokenizer tokenizer = new StringTokenizer(parsedLine," >",false);
+        ruleName = new Symbol(tokenizer.nextToken());
+        while (tokenizer.hasMoreTokens()){
+            ruleResult.add(new Symbol(tokenizer.nextToken()));
+        }
+    }
+
+    public List<Symbol> getSymbolList(){
+        return ruleResult;
     }
 
     public String getRuleName() {
-        return ruleName;
+        return ruleName.getSymbol();
     }
 
-    public LinkedList<String> getRuleParams() {
-        return ruleParams;
+    public String getRuleReport(){
+        StringBuilder b = new StringBuilder();
+        for(Symbol s : ruleResult){
+            b.append("\t"+s.getRulesLinksReport()+"\n");
+        }
+
+        return b.toString();
     }
 
-    public Set<String> getFirstSet() {
-        return firstSet;
-    }
-
-    public Set<String> getFollowSet() {
-        return followSet;
+    public Set<String> getFirst(){
+        return ruleResult.get(0).getFirst();
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
-        return ruleName;
+        builder.append(ruleName.getSymbol()+" -> ");
+        for(Symbol s : ruleResult){
+            builder.append(s.getSymbol()+" ");
+        }
+
+       // return ruleName.toString();
+        return builder.toString();
+    }
+
+    /**
+     * A class that represents a terminal/non-terminal symbol.
+     *
+     */
+    protected class Symbol{
+
+        private static final String LAMBA = "_LAMBDA_";
+
+        private String symbol;
+        private boolean isTerminal;
+
+        private List<Rule> linkedRules;
+
+        public Symbol(String symbol){
+            this.symbol=symbol;
+            isTerminal = true;
+
+            for(char c : symbol.toCharArray()){
+                isTerminal &= !(Character.isUpperCase(c));
+            }
+        }
+
+        public Set<String> getFirst(){
+
+            Set<String> s = new HashSet<>();
+
+            if(isTerminal){
+                s.add(symbol);
+                return s;
+            }
+
+            if(symbol.equalsIgnoreCase(LAMBA)) {
+                return s;
+            }
+
+            for(Rule r : linkedRules){
+                s.addAll(r.getFirst());
+            }
+
+            return s;
+            //return linkedRules.get(0).getFirst();
+        }
 
 
+        public void linkRule(List<Rule> r){
+            this.linkedRules=r;
+        }
 
+        public String getSymbol() {
+            return symbol;
+        }
 
-        //return builder.toString();
+        public boolean isTerminal() {
+            return isTerminal;
+        }
+
+        public String getRulesLinksReport(){
+            if(isTerminal)
+                return "N/A";
+
+            StringBuilder builder = new StringBuilder();
+            builder.append("SYMBOL "+symbol+" goes to:\n ");
+            if(linkedRules!=null) {
+                for (Rule r : linkedRules) {
+                    builder.append("\t\t" + r.toString() + "\n");
+                }
+            }
+
+            return builder.toString();
+        }
+        @Override
+        public String toString() {
+            //System.out.println();
+            return symbol+" isTerminal? :"+isTerminal;
+        }
     }
 }

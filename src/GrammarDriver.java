@@ -9,7 +9,11 @@ public class GrammarDriver {
             return;
         }
         Grammar grammar = Grammar.instantiate(args[0]);
-        System.out.println(grammar.toString());
+
+        //System.out.println(grammar.toString());
+        System.out.println("FIRST SETS: ");
+        System.out.println(grammar.getFirstSetsAsString());
+       // System.out.println(grammar.reportRulesLinks());
 
 
     }

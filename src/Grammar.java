@@ -1,8 +1,5 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Singleton Class
@@ -24,17 +21,19 @@ public class Grammar {
 
         String line = null;
         while((line= reader.readLine()) != null){
-
             //System.out.println(line);
-
             Rule rule = new Rule(line);
+
             if(grammar.get(rule.getRuleName())==null){
-                grammar.put(rule.getRuleName(),new ArrayList<>());
+                grammar.put(rule.getRuleName(),new ArrayList<Rule>());
             }
             grammar.get(rule.getRuleName()).add(rule);
         }
 
+        is.close();
         reader.close();
+
+        linkMyRules();
 
     }
 
@@ -48,9 +47,9 @@ public class Grammar {
         } catch (IOException e){
             instance=null;
             System.out.println("ERROR: There was an IO Exception building the singleton: "+e.toString());
-        }  finally {
-            return instance;
         }
+
+        return instance;
     }
 
     public static Grammar getInstance() {
@@ -58,6 +57,92 @@ public class Grammar {
             System.out.println("ERROR, you need to instantiate the grammar from a fileName before getting the instance.");
         }
         return instance;
+    }
+
+    public String getFirstSetsAsString(){
+
+        StringBuilder builder = new StringBuilder();
+
+
+
+
+        for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
+            Set<String> firstSet = new HashSet<>();
+
+            String key = entry.getKey();
+            List<Rule> rules = entry.getValue();
+
+           for(Rule r : rules){
+               firstSet.addAll(r.getFirst());
+           }
+
+            builder.append(key+" -> ");
+            builder.append("{");
+            for(String s : firstSet){
+                builder.append(s+", ");
+            }
+
+            builder.replace(builder.toString().length()-2,builder.toString().length(),"");
+
+            builder.append("}\n");
+
+        }
+
+
+
+
+        return builder.toString();
+
+    }
+
+    public String getFollowSetsAsString(){
+        return "";
+    }
+
+    private void linkMyRules(){
+
+        //for every rule
+        for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
+            String key = entry.getKey();
+            List<Rule> rules = entry.getValue();
+
+
+            //for ever expression of given rule
+            for(Rule r : rules){
+
+                List<Rule.Symbol> symbols = r.getSymbolList();
+
+                //Take each symbol, and link the appropriate rule
+                for(Rule.Symbol s : symbols){
+                    s.linkRule(grammar.get(s.getSymbol()));
+                }
+
+            }
+
+        }
+    }
+
+    public String reportRulesLinks(){
+        StringBuilder builder = new StringBuilder();
+        int i = 1;
+        for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
+            String key = entry.getKey();
+            List<Rule> rules = entry.getValue();
+
+            for(Rule r : rules) {
+
+                builder.append("RULE " + i + ": "+r.toString()+ "\n" +r.getRuleReport()+"\n");
+
+
+
+                i++;
+            }
+
+
+        }
+
+        return builder.toString();
+
     }
 
     @Override
