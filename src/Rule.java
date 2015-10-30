@@ -46,6 +46,10 @@ public class Rule {
     }
 
     public Set<String> getFirst(){
+        if(ruleName.equals(ruleResult.get(0))){//To eliminate left-hand recursion
+            return new HashSet<String>();
+        }
+
         return ruleResult.get(0).getFirst();
     }
 
@@ -132,6 +136,12 @@ public class Rule {
 
             return builder.toString();
         }
+
+        public boolean equals(Symbol s){
+            return this.symbol.equals(s.symbol);
+        }
+
+
         @Override
         public String toString() {
             //System.out.println();
