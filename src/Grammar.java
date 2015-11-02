@@ -5,14 +5,10 @@ import java.util.*;
  * Singleton Class
  * Created by jmitch on 10/20/2015.
  */
-public class Grammar implements OnFollowSetUpdatedListener{
+public class Grammar{
 
     //Map a rule BY it's rule name, followed by a list of all rules.
     private Map<String,List<Rule>> grammar;
-
-
-
-
 
 
     public Grammar(String fileName) throws IOException{
@@ -51,9 +47,9 @@ public class Grammar implements OnFollowSetUpdatedListener{
             String key = entry.getKey();
             List<Rule> rules = entry.getValue();
 
-           for(Rule r : rules){
-               firstSet.addAll(r.getFirst());
-           }
+            for(Rule r : rules){
+                firstSet.addAll(r.getFirst());
+            }
 
             builder.append(key+" -> ");
             builder.append("{");
@@ -71,60 +67,39 @@ public class Grammar implements OnFollowSetUpdatedListener{
 
     }
 
-
     public String getFollowSetsAsString(){
 
-        //FIRST, add the starting symbol to have $.
-        List<Rule> firstRule = grammar.get(Rule.startingSymbol);
-        if(firstRule != null){
-            for(Rule r : firstRule){
-                Set<String> firstFollowSymbol = new HashSet<>();
-                firstFollowSymbol.add("$");
-                r.addToFollow(firstFollowSymbol);
-            }
-        }
+        StringBuilder builder = new StringBuilder();
 
-        //Second, INIT the follow sets internally for each rule.
         for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
+            Set<String> followSet = new HashSet<>();
 
             String key = entry.getKey();
             List<Rule> rules = entry.getValue();
 
             for(Rule r : rules){
-                //r.findAndStoreFollows(this);
+                if(r.getFollow()!=null)
+                    followSet.addAll(r.getFollow());
             }
-        }
-
-        //THEN, retrieve the follow Sets when it's all said and done.
-        StringBuilder builder = new StringBuilder();
-        for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
-
-            String key = entry.getKey();
-            List<Rule> rules = entry.getValue();
-
-            //Each element in the rule array should all have the information for it's follow set.
-            //Any index will do. Ill choose 0.
-
-            Set<String> follow = rules.get(0).getFollow();
 
             builder.append(key+" -> ");
             builder.append("{");
-            for(String s : follow){
+            for(String s : followSet){
                 builder.append(s+", ");
             }
 
-
-            if(!follow.isEmpty()) {
+            if(!followSet.isEmpty()) {
                 builder.replace(builder.toString().length() - 2, builder.toString().length(), "");
             }
 
             builder.append("}\n");
+
         }
 
-
-
         return builder.toString();
+
     }
+
 
 
     /**
@@ -192,19 +167,5 @@ public class Grammar implements OnFollowSetUpdatedListener{
         return builder.toString();
     }
 
-    @Override
-    public void onFollowSetDetermined(String symbol, Set<String> followSymbols) {
-        List<Rule> rules = grammar.get(symbol);
-        if(rules != null){
-            for(Rule r : rules){
-                r.addToFollow(followSymbols);
-            }
-        }
-    }
-
-    @Override
-    public void onFollowSetNotDetermined(String callbackFollowSymbol,String ruleToUpdate) {
-
-    }
 
 }

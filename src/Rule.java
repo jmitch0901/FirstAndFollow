@@ -58,6 +58,9 @@ public class Rule {
         return b.toString();
     }
 
+    public Set<String> getFollow(){
+        return followSet;
+    }
     public Set<String> getFirst(){
 
         if(ruleName.equals(ruleResult.get(0))){ //To eliminate left-hand recursion
@@ -68,68 +71,6 @@ public class Rule {
         return firstSet;
     }
 
-
-    public void findAndStoreFollows(OnFollowSetUpdatedListener listener){
-        for(int i = 0; i < ruleResult.size()-1; i++){
-            Symbol thisSymbol = ruleResult.get(i);
-            Symbol nextSymbol = ruleResult.get(i+1);
-
-
-
-
-        }
-
-        Symbol finalSymbol = ruleResult.get(ruleResult.size()-1);
-
-        if(finalSymbol.isTerminal()){
-            return;
-        }
-
-
-
-    }
-
-    /*public void findAndStoreFollows(OnFollowSetUpdatedListener listener){
-
-        for(int i =0; i < ruleResult.size()-1; i++){ //-1 because the last symbol is special
-
-            Symbol thisSymbol = ruleResult.get(i);
-            Symbol nextSymbol = ruleResult.get(i+1);
-
-            Set<String> followSymbols = new HashSet<>();
-
-            if(thisSymbol.isStartingSymbol()){
-                followSymbols.add("$");
-            }
-
-
-            Set<String> nextFirst = nextSymbol.getFirst();
-            boolean containsLambda = nextFirst.contains(Symbol.LAMBA);
-
-            if(containsLambda){
-                //followSymbols.addAll(this.getFollow());
-                followSymbols.remove(Symbol.LAMBA);
-            } else {
-                followSymbols.addAll(nextSymbol.getFirst());
-            }
-            //Tell the callbacks we have new symbols to update
-            listener.onFollowSetUpdated(thisSymbol.getSymbol(),followSymbols);
-        }
-
-        //At the end, tell the callbacks that we want to contain S within C, where S -> C
-        //Might be getting a bug here. Follow(A) is contained within Follow(B) when A -> B.
-        //I should WAIT to execute this code until the REST of the follows have been determined.
-
-    }*/
-
-    public Set<String> getFollow(){
-        return followSet;
-    }
-
-
-    public void addToFollow(Set<String> follows){
-        followSet.addAll(follows);
-    }
 
 
     @Override
