@@ -6,28 +6,33 @@ import java.io.IOException;
 public class GrammarDriver {
 
     public static void main(String[] args){
-        if(args==null || args[0] == null){
-            System.out.println("Syntax Error: Expected File Name as argument.");
-            return;
-        }
 
         Grammar grammar1 = null;
         Grammar grammar2 = null;
 
         try {
-            grammar1 = new Grammar(args[0]);
+            grammar1 = new Grammar("grammar_1.txt");
+            grammar2 = new Grammar("grammar_2.txt");
         } catch (IOException e){
             System.out.println("Error parsing in grammar: "+e.toString());
             return;
         }
 
-        //System.out.println(grammar.toString());
+        System.out.println("Grammar 1: ");
         System.out.println("FIRST SETS: ");
         System.out.println(grammar1.getFirstSetsAsString());
 
+        System.out.println("Grammar 1: ");
         System.out.println("FOLLOW SETS: ");
         System.out.println(grammar1.getFollowSetsAsString());
-       // System.out.println(grammar.reportRulesLinks());
+
+        System.out.println("Grammar 2: ");
+        System.out.println("FIRST SETS: ");
+        System.out.println(grammar2.getFirstSetsAsString());
+
+        System.out.println("Grammar 2: ");
+        System.out.println("FOLLOW SETS: ");
+        System.out.println(grammar2.getFollowSetsAsString());
 
 
     }

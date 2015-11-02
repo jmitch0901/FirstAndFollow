@@ -9,57 +9,10 @@ public class Grammar{
 
     //Map a rule BY it's rule name, followed by a list of all rules.
     private Map<String,List<Rule>> grammar;
-    private Map<String,List<String>> rulesNeedingFollowUpdate;
-
-
-    private final OnFollowSetUpdatedCallbacks FOLLOW_CALLBACKS = new OnFollowSetUpdatedCallbacks() {
-        @Override
-        public void onFollowSetUpdated(String ruleSymbol, Set<String> followSet) {
-
-            //Check to see if the follow set were updating satisfies conditions for another rule needing that follow set.
-            if(rulesNeedingFollowUpdate.containsKey(ruleSymbol)){
-
-                List<Rule> rulesToUpdate = grammar.get(rulesNeedingFollowUpdate.get(ruleSymbol));
-                if(rulesToUpdate==null || rulesToUpdate.size()==0){
-                    System.out.println("THERE WERE NO RULE ENTRIES FOR: "+ruleSymbol);
-                    return;
-                }
-
-                for(Rule rule : rulesToUpdate){
-                    rule.addToFollowSet(followSet);
-                }
-
-                rulesNeedingFollowUpdate.remove(ruleSymbol);
-            }
-
-
-            //Add the follow set
-            List<Rule> rules = grammar.get(ruleSymbol);
-            if(rules == null) return;
-            for(Rule r : rules) {
-                r.addToFollowSet(followSet);
-            }
-        }
-
-        @Override
-        public void onRuleNeedingUpdate(String ruleNeeded, String ruleToUpdate) {
-            if(rulesNeedingFollowUpdate.containsKey(ruleNeeded)){
-                System.out.println("YOU HAVE THAT KEY ALREADY IN THE MAP!");
-            }
-
-        }
-
-    };
-
-    protected interface OnFollowSetUpdatedCallbacks{
-        void onFollowSetUpdated(String ruleSymbol, Set<String> followSet);
-        void onRuleNeedingUpdate(String ruleNeeded, String ruleToUpdate);
-    }
 
     public Grammar(String fileName) throws IOException{
 
         grammar = new HashMap<>();
-        rulesNeedingFollowUpdate = new HashMap<>();
 
         InputStream is = new FileInputStream(fileName);
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -113,15 +66,94 @@ public class Grammar{
 
     }
 
+    private void mergeFollows(String rule){
+        List<Rule> rules =  grammar.get(rule);
 
-    private void initFollowSets(){
-        for(Map.Entry<String, List<Rule>> entry : grammar.entrySet()){
-            String key = entry.getKey();
-            List<Rule> rules = entry.getValue();
+        if(rule!=null){
+            Set<String> strings = new HashSet<>();
+            for(Rule r : rules){
+                strings.addAll(r.getFollow());
+            }
+
+            strings.remove(Rule.Symbol.LAMBA);
 
             for(Rule r : rules){
-                r.initFollowsForRules(FOLLOW_CALLBACKS);
+                r.setFollow(strings);
             }
+        }
+    }
+
+
+    private void initFollowSets(){
+        boolean itemsNotChanging = false;
+
+        int k = 0;
+
+        while(k < 100) {
+
+            //System.out.println("fdsafdsf");
+            itemsNotChanging = true;
+
+            for (Map.Entry<String, List<Rule>> entry : grammar.entrySet()) {
+
+                String key = entry.getKey();
+                List<Rule> rules = entry.getValue();
+
+                for (Rule r : rules) {
+
+                    Rule.Symbol A_String = r.getStartSymbol();
+                    List<Rule.Symbol> Other_Strings = r.getRuleResult();
+
+                    for (int i = 0; i < Other_Strings.size() - 1; i++) {
+                        Rule.Symbol first = Other_Strings.get(i);
+                        if(first.isTerminal()) continue;
+                        Rule.Symbol next = Other_Strings.get(i + 1);
+
+                        if (!next.getFirst().contains(Rule.Symbol.LAMBA)) {
+                            //System.out.println(first.getSymbol());
+                            grammar.get(first.getSymbol())
+                                    .get(0)
+                                    .getFollow()
+                                    .addAll(next.getFirst());
+
+                            mergeFollows(first.getSymbol());
+                        } else {
+
+                            grammar.get(first.getSymbol())
+                                    .get(0)
+                                    .getFollow()
+                                    .addAll(next.getFirst());
+
+                            mergeFollows(first.getSymbol());
+
+
+                            grammar.get(first.getSymbol())
+                                    .get(0)
+                                    .getFollow()
+                                    .addAll(r.getFollow());
+
+                            mergeFollows(first.getSymbol());
+                        }
+                    }
+
+                    Rule.Symbol endSymbol = Other_Strings.get(Other_Strings.size() - 1);
+
+                    if (!endSymbol.isTerminal()) {
+
+                        try {
+                            grammar.get(endSymbol.getSymbol())
+                                    .get(0)
+                                    .getFollow()
+                                    .addAll(r.getFollow());
+                        } catch (Exception e){
+                            continue;
+                        }
+
+                        mergeFollows(endSymbol.getSymbol());
+                    }
+                }
+            }
+            k++;
         }
     }
 
@@ -130,6 +162,7 @@ public class Grammar{
         initFollowSets();
 
         StringBuilder builder = new StringBuilder();
+
         for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
             Set<String> followSet = new HashSet<>();
 
@@ -173,7 +206,7 @@ public class Grammar{
             //for ever expression of given rule
             for(Rule r : rules){
 
-                List<Rule.Symbol> symbols = r.getSymbolList();
+                List<Rule.Symbol> symbols = r.getRuleResult();
 
                 //Take each symbol, and link the appropriate rule
                 for(Rule.Symbol s : symbols){

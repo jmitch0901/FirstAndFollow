@@ -1,5 +1,4 @@
 
-
 import java.util.*;
 
 /**
@@ -11,17 +10,18 @@ public class Rule {
     private List<Symbol> ruleResult;
 
     private Set<String> firstSet;
-    private Set<String> followSet;
 
     protected static String startingSymbol = null;
+
+    private Set<String> followSet;
 
     public Rule(String parsedLine){
 
         ruleResult = new LinkedList<>();
+        followSet = new HashSet<>();
 
         StringTokenizer tokenizer = new StringTokenizer(parsedLine," >",false);
         ruleName = new Symbol(tokenizer.nextToken());
-
 
 
         while (tokenizer.hasMoreTokens()){
@@ -36,14 +36,28 @@ public class Rule {
         }
 
         if(startingSymbol.equalsIgnoreCase(ruleName.getSymbol())){
-            followSet = new HashSet<>();
             followSet.add("$");
         }
     }
 
-    public List<Symbol> getSymbolList(){
+    public Set<String> getFollow(){
+        followSet.remove(Symbol.LAMBA);
+        return followSet;
+    }
+
+    public void setFollow(Set<String> follow){
+        followSet.addAll(follow);
+    }
+
+
+    public Symbol getStartSymbol(){
+        return ruleName;
+    }
+
+    public List<Symbol> getRuleResult(){
         return ruleResult;
     }
+
 
     public String getRuleName() {
         return ruleName.getSymbol();
@@ -58,9 +72,7 @@ public class Rule {
         return b.toString();
     }
 
-    public Set<String> getFollow(){
-        return followSet;
-    }
+
 
     public Set<String> getFirst(){
 
@@ -72,57 +84,6 @@ public class Rule {
         return firstSet;
     }
 
-    public void initFollowsForRules(Grammar.OnFollowSetUpdatedCallbacks callbacks){
-        for(int i = 0; i < ruleResult.size()-1; i++){
-            Symbol firstS = ruleResult.get(i);
-            Symbol nextS = ruleResult.get(i+1);
-
-            Set<String> nextFirstSet = nextS.getFirst();
-
-            Set<String> followSet = new HashSet<>();
-
-            if(nextFirstSet.contains(Symbol.LAMBA)){
-                List<Rule> rules = nextS.getLinkedRules();
-                for(Rule r : rules){
-                    if(r.hasFollowSet()){
-                        followSet.addAll(r.getFollow());
-                    } else {
-                        callbacks.onRuleNeedingUpdate(r.ruleName.getSymbol(),firstS.getSymbol());
-                    }
-                }
-            }
-
-
-            followSet.addAll(nextS.getFirst());
-            followSet.remove(Symbol.LAMBA);
-
-            callbacks.onFollowSetUpdated(firstS.getSymbol(),followSet);
-        }
-
-        Symbol endingSymbol = ruleResult.get(ruleResult.size()-1);
-
-        if(!endingSymbol.isTerminal()){
-            List<Rule> rules = endingSymbol.getLinkedRules();
-            if(rules==null) return;
-            for(Rule r : rules){
-                if(this.hasFollowSet()){
-                    callbacks.onFollowSetUpdated(endingSymbol.getSymbol(),this.getFollow());
-                } else {
-                    callbacks.onRuleNeedingUpdate(ruleName.getSymbol(),r.ruleName.getSymbol());
-                }
-            }
-        }
-    }
-
-    public void addToFollowSet(Set<String> followSet){
-        this.followSet = new HashSet<>();
-        this.followSet.addAll(followSet);
-    }
-
-    public boolean hasFollowSet(){
-        return this.followSet!=null && !this.followSet.isEmpty();
-    }
-
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -132,7 +93,6 @@ public class Rule {
             builder.append(s.getSymbol()+" ");
         }
 
-       // return ruleName.toString();
         return builder.toString();
     }
 
@@ -178,17 +138,8 @@ public class Rule {
             }
 
             return s;
-            //return linkedRules.get(0).getFirst();
         }
 
-        public List<Rule> getLinkedRules(){
-            return linkedRules;
-        }
-
-
-        public boolean isStartingSymbol(){
-            return this.symbol.equalsIgnoreCase(startingSymbol);
-        }
 
         public void linkRule(List<Rule> r){
             this.linkedRules=r;
@@ -228,18 +179,3 @@ public class Rule {
         }
     }
 }
-
-
-
-
-            /*if(nextSymbol.isTerminal()) {
-                followSymbols.add(nextSymbol.getSymbol());
-           } else {
-                //DOUBLE CHECK THIS! Do I add the first for ALL symbols following????
-
-                for(int j = i; j < ruleResult.size(); j++){
-                    followSymbols.addAll(ruleResult.get(j).getFirst());
-                }
-                //followSymbols.addAll(nextSymbol.getFirst());
-                followSymbols.remove(Symbol.LAMBA);
-            }*/
