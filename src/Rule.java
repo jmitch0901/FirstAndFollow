@@ -17,8 +17,8 @@ public class Rule {
 
     public Rule(String parsedLine){
 
-        ruleResult = new LinkedList<>();
-        followSet = new HashSet<>();
+        ruleResult = new LinkedList<Symbol>();
+        followSet = new HashSet<String>();
 
         StringTokenizer tokenizer = new StringTokenizer(parsedLine," >",false);
         ruleName = new Symbol(tokenizer.nextToken());
@@ -28,7 +28,7 @@ public class Rule {
             ruleResult.add(new Symbol(tokenizer.nextToken()));
         }
 
-        firstSet = new HashSet<>();
+        firstSet = new HashSet<String>();
 
 
         if(startingSymbol==null){
@@ -121,7 +121,7 @@ public class Rule {
 
         public Set<String> getFirst(){
 
-            Set<String> s = new HashSet<>();
+            Set<String> s = new HashSet<String>();
 
             if(isTerminal){
                 s.add(symbol);

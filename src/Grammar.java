@@ -12,7 +12,7 @@ public class Grammar{
 
     public Grammar(String fileName) throws IOException{
 
-        grammar = new HashMap<>();
+        grammar = new HashMap<String,List<Rule>>();
 
         InputStream is = new FileInputStream(fileName);
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -41,7 +41,7 @@ public class Grammar{
         StringBuilder builder = new StringBuilder();
 
         for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
-            Set<String> firstSet = new HashSet<>();
+            Set<String> firstSet = new HashSet<String>();
 
             String key = entry.getKey();
             List<Rule> rules = entry.getValue();
@@ -70,7 +70,7 @@ public class Grammar{
         List<Rule> rules =  grammar.get(rule);
 
         if(rule!=null){
-            Set<String> strings = new HashSet<>();
+            Set<String> strings = new HashSet<String>();
             for(Rule r : rules){
                 strings.addAll(r.getFollow());
             }
@@ -164,7 +164,7 @@ public class Grammar{
         StringBuilder builder = new StringBuilder();
 
         for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
-            Set<String> followSet = new HashSet<>();
+            Set<String> followSet = new HashSet<String>();
 
             String key = entry.getKey();
             List<Rule> rules = entry.getValue();
