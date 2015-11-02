@@ -9,11 +9,57 @@ public class Grammar{
 
     //Map a rule BY it's rule name, followed by a list of all rules.
     private Map<String,List<Rule>> grammar;
+    private Map<String,List<String>> rulesNeedingFollowUpdate;
 
+
+    private final OnFollowSetUpdatedCallbacks FOLLOW_CALLBACKS = new OnFollowSetUpdatedCallbacks() {
+        @Override
+        public void onFollowSetUpdated(String ruleSymbol, Set<String> followSet) {
+
+            //Check to see if the follow set were updating satisfies conditions for another rule needing that follow set.
+            if(rulesNeedingFollowUpdate.containsKey(ruleSymbol)){
+
+                List<Rule> rulesToUpdate = grammar.get(rulesNeedingFollowUpdate.get(ruleSymbol));
+                if(rulesToUpdate==null || rulesToUpdate.size()==0){
+                    System.out.println("THERE WERE NO RULE ENTRIES FOR: "+ruleSymbol);
+                    return;
+                }
+
+                for(Rule rule : rulesToUpdate){
+                    rule.addToFollowSet(followSet);
+                }
+
+                rulesNeedingFollowUpdate.remove(ruleSymbol);
+            }
+
+
+            //Add the follow set
+            List<Rule> rules = grammar.get(ruleSymbol);
+            if(rules == null) return;
+            for(Rule r : rules) {
+                r.addToFollowSet(followSet);
+            }
+        }
+
+        @Override
+        public void onRuleNeedingUpdate(String ruleNeeded, String ruleToUpdate) {
+            if(rulesNeedingFollowUpdate.containsKey(ruleNeeded)){
+                System.out.println("YOU HAVE THAT KEY ALREADY IN THE MAP!");
+            }
+
+        }
+
+    };
+
+    protected interface OnFollowSetUpdatedCallbacks{
+        void onFollowSetUpdated(String ruleSymbol, Set<String> followSet);
+        void onRuleNeedingUpdate(String ruleNeeded, String ruleToUpdate);
+    }
 
     public Grammar(String fileName) throws IOException{
 
         grammar = new HashMap<>();
+        rulesNeedingFollowUpdate = new HashMap<>();
 
         InputStream is = new FileInputStream(fileName);
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -67,10 +113,23 @@ public class Grammar{
 
     }
 
+
+    private void initFollowSets(){
+        for(Map.Entry<String, List<Rule>> entry : grammar.entrySet()){
+            String key = entry.getKey();
+            List<Rule> rules = entry.getValue();
+
+            for(Rule r : rules){
+                r.initFollowsForRules(FOLLOW_CALLBACKS);
+            }
+        }
+    }
+
     public String getFollowSetsAsString(){
 
-        StringBuilder builder = new StringBuilder();
+        initFollowSets();
 
+        StringBuilder builder = new StringBuilder();
         for(Map.Entry<String,List<Rule>> entry : grammar.entrySet()){
             Set<String> followSet = new HashSet<>();
 
@@ -78,8 +137,7 @@ public class Grammar{
             List<Rule> rules = entry.getValue();
 
             for(Rule r : rules){
-                if(r.getFollow()!=null)
-                    followSet.addAll(r.getFollow());
+                followSet.addAll(r.getFollow());
             }
 
             builder.append(key+" -> ");
